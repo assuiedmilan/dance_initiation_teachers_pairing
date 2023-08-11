@@ -7,8 +7,7 @@ The principle objective was to have it reworked as much as possible to high stan
 The essential prompts used for this program generation are listed in this readme.
 
 The conclusion is while ChatGPT-4 is very usefull to generate code, it will make may errors, and provide very convoluted, complex code.
-For instance, when generating a list of all dancers, it chose to use a complex set generation instead of simply using the initialy received lists of dancers.
-
+However, when it came to rework the code in order to have it correctly architectured and following a few key concepts, the code generation failed miserability.
 
 ## About
 
@@ -71,7 +70,6 @@ The initial set of requirements stands as follow:
 > - Once we have all the valid tuples only, select the dancers for this date, to do this, make sure that there's no imbalance in dates attributions: available dancers should all perform a similar number of times. This will be a third process.
 > - If a date has no match, generate a tuple for this date that shows it
 
-
 ### Tests:
 
 > Generate the following unit tests using pytest:
@@ -86,7 +84,7 @@ The initial set of requirements stands as follow:
 > 
 > - Verify that balance_performances will not create imbalances. You can use a set of several dancers and have some available for all dates, while some others have only one availability
 > 
-> - Verify that assign_dates function properly by using a set of 6 leads and 4 follows, that should be available for 1 to 4 dates among 6 possible
+> - Verify that assign_dates work properly by using a set of 6 leads and 4 follows, that should be available for 1 to 4 dates among 6 possible
 
 ## Updates to the requirements following trials:
 
@@ -128,4 +126,39 @@ Then:
 > 
 > Please fix the funciton so it perform this check
 
+### Reworking the code 
 
+> Now that we have a somehow working code, and before we improve the functionalities and usability of this software, I would like us to set a standard and rework the existing code and tests to abide by > this standard
+> 
+> The objective is to make this code professional.
+> 
+> First, I would like you to abide by some design principles:
+> 
+> - Single responsibility principle: A class or function should have only one reason to change.
+> - No use of inheritance is allowed for this project, use composition when needed
+> - Interface Segregation Principle: Clients should not be forced to depend upon methods that they do not use. Interfaces belong to clients, not to hierarchies.
+> - Dependency Inversion Principle: Abstractions should not depend upon details. Details should depend upon abstractions.
+> 
+> Next, I would like to setup a few code rules:
+> 
+> - For classes, methods and variable, use naming that are human understandable and give clear understanding of the underlying concept. For instance, do not use programming names in naming, such as tuples, instead, give a name that describe what this tuple is functionally.
+> - When using classes, only a single class should be present per file. From now on, you shall separate the code in one snippet per file and mention the file name before the snippet
+> - For functions, apply the single responsibility principe to the file. Regroup functions in separate files based on the concept they represent. For instance the entry point method that perform the whole computation should be separated from the small processes that perform the algorithm
+> - The same as above applies for tests
+> - Have no more than two level of nesting and only if it doesn't break the single resonsibility principle
+> - When checking for an "if" condition, favor declaring correctly named individual booleans rather than nesting "if" conditions
+> - Wrap complex concepts in classes and give accessors. For instance, when using tuples that are reused at several locations in the code, wrap that tuple in a class so we do not have to guess what the indexes are
+> - Use dataclasses wheras possible, use it if possible to avoid implementing equality and hash methods
+> - All files, classes, and methods, should be documented using the google doc format, and all parameters explicitely explained
+
+Then as the method were long and heavily commented:
+
+> Let's add a new requirement:
+> 
+> - Code comments that explain "what" the code is doing is prohibited. From now on, everytime you think about writting a comment, you should instead create a new method with a clear name that describe what this method is doing. Have this method private.
+> 
+> Since they are comments in a lot of methods, please separate filter_valid_tuples, balance_performances and match match_beginners in separate files, each of those files shall have only one single public method, and the others will be private, declared using '__'
+> 
+> Rewrite the whole code, do not use # method logic here
+
+Ultimately, rewriting the code with Chat-GPT was an utter faillure, and we ended up doing it ourselves.

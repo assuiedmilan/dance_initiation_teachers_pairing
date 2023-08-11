@@ -1,16 +1,19 @@
 import pytest
 from datetime import datetime
 
-from resolver.resolver import Dancer, Level, filter_valid_tuples, generate_tuples, assign_dates
+from data.dancer import Dancer
+from enumerations.dancer_level import DancerLevel
+from resolver.assign_dates import assign_dates
+from resolver.generate_tuples import generate_tuples, filter_valid_tuples
 
 
 # Use the classes and functions defined above
 
 def test_generate_tuples():
     dates = [datetime(2023, 7, i) for i in range(1, 7)]
-    john = Dancer('John', Level.EXPERT, True)
+    john = Dancer('John', DancerLevel.EXPERT, True)
     john.add_availability(dates)
-    jane = Dancer('Jane', Level.MEDIUM, False)
+    jane = Dancer('Jane', DancerLevel.MEDIUM, False)
     jane.add_availability(dates)
     tuples = generate_tuples(john, [jane], dates)
     assert len(tuples) == 6  # All dates should have a match
@@ -19,32 +22,32 @@ def test_generate_tuples():
     tuples = generate_tuples(john, [jane], dates)
     assert len(tuples) == 6  # Extra availability shouldn't create extra matches
 
-    jane = Dancer('Jane', Level.MEDIUM, False)  # New Jane with no availability
+    jane = Dancer('Jane', DancerLevel.MEDIUM, False)  # New Jane with no availability
     tuples = generate_tuples(john, [jane], dates)
     assert len(tuples) == 0  # No match should be found
 
-@pytest.mark.parametrize("lead_level,follow_level", [(Level.BEGINNER, Level.EXPERT),
-                                                     (Level.MEDIUM, Level.EXPERT),
-                                                     (Level.EXPERT, Level.EXPERT),
-                                                     (Level.EXPERT, Level.BEGINNER),
-                                                     (Level.EXPERT, Level.MEDIUM)])
-def test_filter_valid_tuples_allow(lead_level, follow_level):
+@pytest.mark.parametrize("lead_DancerLevel,follow_DancerLevel", [(DancerLevel.BEGINNER, DancerLevel.EXPERT),
+                                                     (DancerLevel.MEDIUM, DancerLevel.EXPERT),
+                                                     (DancerLevel.EXPERT, DancerLevel.EXPERT),
+                                                     (DancerLevel.EXPERT, DancerLevel.BEGINNER),
+                                                     (DancerLevel.EXPERT, DancerLevel.MEDIUM)])
+def test_filter_valid_tuples_allow(lead_DancerLevel, follow_DancerLevel):
     dates = [datetime(2023, 7, 1)]
-    john = Dancer('John', lead_level, True)
+    john = Dancer('John', lead_DancerLevel, True)
     john.add_availability(dates)
-    jane = Dancer('Jane', follow_level, False)
+    jane = Dancer('Jane', follow_DancerLevel, False)
     jane.add_availability(dates)
     tuples = [(dates[0], john, jane)]
     valid_tuples = filter_valid_tuples(tuples)
     assert len(valid_tuples) == 1  # This pair should be allowed
 
-@pytest.mark.parametrize("lead_level,follow_level", [(Level.BEGINNER, Level.MEDIUM),
-                                                     (Level.MEDIUM, Level.BEGINNER)])
-def test_filter_valid_tuples_not_allow(lead_level, follow_level):
+@pytest.mark.parametrize("lead_DancerLevel,follow_DancerLevel", [(DancerLevel.BEGINNER, DancerLevel.MEDIUM),
+                                                     (DancerLevel.MEDIUM, DancerLevel.BEGINNER)])
+def test_filter_valid_tuples_not_allow(lead_DancerLevel, follow_DancerLevel):
     dates = [datetime(2023, 7, 1)]
-    john = Dancer('John', lead_level, True)
+    john = Dancer('John', lead_DancerLevel, True)
     john.add_availability(dates)
-    jane = Dancer('Jane', follow_level, False)
+    jane = Dancer('Jane', follow_DancerLevel, False)
     jane.add_availability(dates)
     tuples = [(dates[0], john, jane)]
     valid_tuples = filter_valid_tuples(tuples)
@@ -53,9 +56,9 @@ def test_filter_valid_tuples_not_allow(lead_level, follow_level):
 
 def test_filter_valid_tuples_no_common_availability():
     dates = [datetime(2023, 7, 1)]
-    john = Dancer('John', Level.EXPERT, True)
+    john = Dancer('John', DancerLevel.EXPERT, True)
     john.add_availability(dates)
-    jane = Dancer('Jane', Level.BEGINNER, False)
+    jane = Dancer('Jane', DancerLevel.BEGINNER, False)
     jane.add_availability([datetime(2023, 7, 2)])
     tuples = [(dates[0], john, jane)]
     valid_tuples = filter_valid_tuples(tuples)
@@ -64,8 +67,8 @@ def test_filter_valid_tuples_no_common_availability():
 
 def test_assign_dates():
     dates = [datetime(2023, 7, i) for i in range(1, 7)]
-    leads = [Dancer(f'Lead {i}', Level.EXPERT, True) for i in range(1, 7)]
-    follows = [Dancer(f'Follow {i}', Level.MEDIUM, False) for i in range(1, 5)]
+    leads = [Dancer(f'Lead {i}', DancerLevel.EXPERT, True) for i in range(1, 7)]
+    follows = [Dancer(f'Follow {i}', DancerLevel.MEDIUM, False) for i in range(1, 5)]
 
     for i, lead in enumerate(leads):
         lead.add_availability(dates[:i+1])  # Each lead is available on i+1 dates
