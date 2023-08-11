@@ -90,3 +90,9 @@ Initially the balance function was favoring experienced dancers only, it was rew
 - When making an arbitration between an begginer and a more advanced dancer, favor the tuple with the less experienced dancer
 - When the lead and follow of both tuples have 0 dates, assign the date randomly, this is to avoid having all begginers getting the first dates, and all experienced dancers having the last
 - The balance_performances function shall have the same signature as the first version of it
+
+### Begginer dancers are left behind if no experience dancers are available to dance with them:
+
+This required the addition of a new requirement. However the generated code could not work and had to be reworked:
+
+- At the end of the validation process, if a begginer dancer could not be matched with an experienced dancer and is not present in any valid couple, it can then be matched with an intermediate dancer who has a common availability with them 

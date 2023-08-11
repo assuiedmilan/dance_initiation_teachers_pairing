@@ -1,9 +1,10 @@
 import random
-from enum import Enum
-from collections import defaultdict
-from typing import List, Dict
-from datetime import datetime
 
+from enum import Enum
+from datetime import datetime
+from typing import Dict, List, Tuple
+from collections import defaultdict
+from itertools import chain
 
 class Level(Enum):
     EXPERT = 3
@@ -44,17 +45,40 @@ def generate_tuples(lead: Dancer, follows: List[Dancer], dates: List[datetime]):
     return possible_matches
 
 
-def filter_valid_tuples(tuples):
+def filter_valid_tuples(potential_tuples: List[Tuple[datetime, Dancer, Dancer]]) -> List[
+    Tuple[datetime, Dancer, Dancer]]:
     valid_tuples = []
-    for date, lead, follow in tuples:
-        if lead.can_match(follow) and follow.can_match(lead):
+
+    for date, lead, follow in potential_tuples:
+        if lead.can_match(follow):
             valid_tuples.append((date, lead, follow))
+
+    # Check for beginner dancers that aren't paired yet
+    leads_and_follows = list(
+        chain((lead for date, lead, follow in potential_tuples), (follow for date, lead, follow in potential_tuples)))
+
+    beginners = [dancer for dancer in leads_and_follows if
+                 dancer.level == Level.BEGINNER and dancer not in (lead for date, lead, follow in
+                                                                   valid_tuples) and dancer not in (follow for
+                                                                                                    date, lead, follow
+                                                                                                    in valid_tuples)]
+    intermediates = [dancer for dancer in leads_and_follows if
+                     dancer.level == Level.MEDIUM and dancer not in (lead for date, lead, follow in
+                                                                     valid_tuples) and dancer not in (follow for
+                                                                                                      date, lead, follow
+                                                                                                      in valid_tuples)]
+
+    for beginner in beginners:
+        for intermediate in intermediates:
+            common_dates = set(beginner.availability).intersection(intermediate.availability)
+            if common_dates:
+                for common_date in common_dates:
+                    valid_tuples.append((common_date, beginner if beginner.is_lead else intermediate,
+                                         intermediate if beginner.is_lead else beginner))
+                break
+
     return valid_tuples
 
-
-from typing import Dict, List, Tuple
-import random
-from collections import defaultdict
 
 def balance_performances(valid_tuples: List[Tuple[datetime, Dancer, Dancer]]) -> Dict[datetime, Tuple[str, str]]:
     # Count the number of performances for each dancer
