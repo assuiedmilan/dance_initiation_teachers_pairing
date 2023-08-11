@@ -56,8 +56,11 @@ def filter_valid_tuples(tuples):
     valid_tuples = []
     for date, lead, follow in tuples:
         if lead.can_match(follow) and follow.can_match(lead):
-            valid_tuples.append((date, lead, follow))
+            # ensure both dancers are available for the proposed date
+            if date in lead.availability and date in follow.availability:
+                valid_tuples.append((date, lead, follow))
     return valid_tuples
+
 
 
 def balance_performances(valid_tuples: List[Tuple[datetime, Dancer, Dancer]]) -> Dict[datetime, Tuple[str, str]]:
