@@ -78,3 +78,15 @@ Generate the following unit tests using pytest:
 - Verify that balance_performances will not create imbalances. You can use a set of several dancers and have some available for all dates, while some others have only one availability
 
 - Verify that assign_dates function properly by using a set of 6 leads and 4 follows, that should be available for 1 to 4 dates among 6 possible
+
+## Updates to the requirements following trials:
+
+### Balance function is not working properly
+
+Initially the balance function was favoring experienced dancers only, it was rewritten using the following set of requirements:
+
+- When in a valid tuple, a lead have less assigned dates than the other lead, it should be favored
+- When in a valid tuple, a follow have less assigned dates than the other follow, it should be favored
+- When making an arbitration between an begginer and a more advanced dancer, favor the tuple with the less experienced dancer
+- When the lead and follow of both tuples have 0 dates, assign the date randomly, this is to avoid having all begginers getting the first dates, and all experienced dancers having the last
+- The balance_performances function shall have the same signature as the first version of it

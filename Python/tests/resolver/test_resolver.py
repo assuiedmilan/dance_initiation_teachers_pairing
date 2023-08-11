@@ -61,6 +61,7 @@ def test_filter_valid_tuples_no_common_availability():
     valid_tuples = filter_valid_tuples(tuples)
     assert len(valid_tuples) == 0  # This pair should not be allowed
 
+
 def test_assign_dates():
     dates = [datetime(2023, 7, i) for i in range(1, 7)]
     leads = [Dancer(f'Lead {i}', Level.EXPERT, True) for i in range(1, 7)]
