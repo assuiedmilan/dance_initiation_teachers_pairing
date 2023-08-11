@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "initiation-teachers-pairing"
+version = "0.1.0"
+description = "A small tool that helps dance events organizer to pairs teachers for introduction classes"
+authors = ["Milan Assuied"]
+packages = [
+    { include = "*", from = "python/src" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2"
+pylint = "*"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+run_pairing = "entry_points.teachers_pairing:run"
+
+[tool.pytest.ini_options]
+testpaths = ["python/tests"]
