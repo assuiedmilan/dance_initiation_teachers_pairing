@@ -34,6 +34,13 @@ class Dancer:
     def performances(self):
         return len(self.performed_dates)
 
+    def __eq__(self, other):
+        if not isinstance(other, Dancer):
+            return NotImplemented
+        return self.name == other.name and self.level == other.level and self.is_lead == other.is_lead
+
+    def __hash__(self):
+        return hash((self.name, self.level, self.is_lead))
 
 def generate_tuples(lead: Dancer, follows: List[Dancer], dates: List[datetime]):
     possible_matches = []
@@ -45,38 +52,11 @@ def generate_tuples(lead: Dancer, follows: List[Dancer], dates: List[datetime]):
     return possible_matches
 
 
-def filter_valid_tuples(potential_tuples: List[Tuple[datetime, Dancer, Dancer]]) -> List[
-    Tuple[datetime, Dancer, Dancer]]:
+def filter_valid_tuples(tuples):
     valid_tuples = []
-
-    for date, lead, follow in potential_tuples:
-        if lead.can_match(follow):
+    for date, lead, follow in tuples:
+        if lead.can_match(follow) and follow.can_match(lead):
             valid_tuples.append((date, lead, follow))
-
-    # Check for beginner dancers that aren't paired yet
-    leads_and_follows = list(
-        chain((lead for date, lead, follow in potential_tuples), (follow for date, lead, follow in potential_tuples)))
-
-    beginners = [dancer for dancer in leads_and_follows if
-                 dancer.level == Level.BEGINNER and dancer not in (lead for date, lead, follow in
-                                                                   valid_tuples) and dancer not in (follow for
-                                                                                                    date, lead, follow
-                                                                                                    in valid_tuples)]
-    intermediates = [dancer for dancer in leads_and_follows if
-                     dancer.level == Level.MEDIUM and dancer not in (lead for date, lead, follow in
-                                                                     valid_tuples) and dancer not in (follow for
-                                                                                                      date, lead, follow
-                                                                                                      in valid_tuples)]
-
-    for beginner in beginners:
-        for intermediate in intermediates:
-            common_dates = set(beginner.availability).intersection(intermediate.availability)
-            if common_dates:
-                for common_date in common_dates:
-                    valid_tuples.append((common_date, beginner if beginner.is_lead else intermediate,
-                                         intermediate if beginner.is_lead else beginner))
-                break
-
     return valid_tuples
 
 
@@ -129,13 +109,54 @@ def balance_performances(valid_tuples: List[Tuple[datetime, Dancer, Dancer]]) ->
     return final_match
 
 
+def match_remaining_beginners(assigned_dates: Dict[datetime, Tuple[str, str]], leads: List[Dancer],
+                              follows: List[Dancer]):
+    # Get all beginners that were not assigned a date
+    unassigned_beginners = [dancer for dancer in (leads + follows) if
+                            dancer.level == Level.BEGINNER and dancer.name not in [name for
+                                                                                   date, (lead_name, follow_name) in
+                                                                                   assigned_dates.items() for name in
+                                                                                   (lead_name, follow_name)]]
+    # For each unassigned beginner, attempt to match with an intermediate dancer
+    for beginner in unassigned_beginners:
+        # Potential intermediate dancers are those who have a common availability date with the beginner, and at least one of their dates is not assigned to a beginner
+        potential_intermediates = [dancer for dancer in (leads + follows) if dancer.level == Level.MEDIUM and any(
+            date in beginner.availability for date in dancer.availability) and any(
+            date not in [date for date, (lead_name, follow_name) in assigned_dates.items() if
+                         beginner.name in (lead_name, follow_name)] for date in dancer.availability)]
+        # Sort potential intermediates by their number of assigned dates
+        potential_intermediates.sort(key=lambda dancer: len(
+            [date for date, (lead_name, follow_name) in assigned_dates.items() if
+             dancer.name in (lead_name, follow_name)]))
+        # Select the intermediate dancer with the fewest assigned dates
+        if potential_intermediates:
+            intermediate = potential_intermediates[0]
+            common_dates = list(set(beginner.availability) & set(intermediate.availability))
+            common_dates.sort(key=lambda date: len(
+                [dancer_name for date_, (lead_name, follow_name) in assigned_dates.items() if date_ == date for
+                 dancer_name in (lead_name, follow_name)]))
+            if common_dates:
+                selected_date = common_dates[0]
+                if beginner.is_lead:
+                    assigned_dates[selected_date] = (beginner.name, intermediate.name)
+                else:
+                    assigned_dates[selected_date] = (intermediate.name, beginner.name)
+
+    return assigned_dates
+
+
+
 def assign_dates(leads, follows, dates):
     possible_tuples = []
     for lead in leads:
         possible_tuples.extend(generate_tuples(lead, follows, dates))
     valid_tuples = filter_valid_tuples(possible_tuples)
+
     final_match = balance_performances(valid_tuples)
+    final_match = match_remaining_beginners(final_match, leads, follows)
+
     for date in dates:
         if date not in final_match:
             final_match[date] = ('No match', 'No match')
+
     return dict(sorted(final_match.items()))
